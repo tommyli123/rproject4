@@ -3,10 +3,17 @@ library(dplyr)
 library(tidyr)
 library(maps)
 library(stringr)
+library(tidyverse)
 library(shiny)
+
 
 co2data <- read.csv("/home/tommy/projects/rproject4/owid-co2-data.csv")
 codebook <- read.csv("/home/tommy/projects/rproject4/owid-co2-codebook.csv")
+# google centroid data source : https://raw.githubusercontent.com/google/dspl/master/samples/google/canonical/countries.csv
+countryCentroids <- read.csv("/home/tommy/projects/rproject4/google-country-centroids.csv")
+countryCentroids_enhanced <- countryCentroids %>%
+  mutate(country = name)
+
 
 # step 0 : analyze for severity of missing data
 column_missing_data <- co2data %>%
@@ -77,14 +84,116 @@ ggplot(data = topCountries_total, aes(x=year, y=coal_co2, group=country)) +
   guides(color=guide_legend(override.aes = list(size=3))) +
   theme(legend.position = "right")
 
+# Step 4 : top 10 countries co2 emission per person
+topCountries_co2_per_person <- topCountries_total %>%
+  filter(year >= 1900) %>%
+  mutate(co2_per_person = co2 / population * 1000000) %>%
+  select(country, year, co2_per_person)
+#  select(country, year, co2, co2_growth_abs, co2_per_capita, share_global_co2, 
+         # share_global_cumulative_co2, co2_per_gdp, coal_co2, oil_co2,
+         # coal_co2_per_capita, oil_co2_per_capita, share_global_coal_co2,
+         # share_global_oil_co2, cumulative_coal_co2, cumulative_oil_co2, population)
+
+ggplot(data = topCountries_co2_per_person, aes(x=year, y=co2_per_person, group=country)) +
+  ggtitle("Top 10 countries CO2 emission per person") +
+  xlab("Year") + ylab("CO2 emission per person-year (tons)") +
+  geom_line(aes(linetype="solid", color=country)) +
+  geom_label(aes(label = country), data = topCountries_co2_per_person %>% filter(year == max(year)),nudge_x = 0.35, size = 4) +
+#  geom_point() +
+  guides(color=guide_legend(override.aes = list(size=3))) 
+
+
+# Step 5 : top 10 countries co2 coal emission per person
+topCountries_coal_co2_per_person <- topCountries_total %>%
+  filter(year >= 1900) %>%
+  mutate(coal_co2_per_person = coal_co2 / population * 1000000) %>%
+  select(country, year, coal_co2_per_person)
+ggplot(data = topCountries_coal_co2_per_person, aes(x=year, y=coal_co2_per_person, group=country)) +
+  ggtitle("Top 10 countries coal CO2 emission per person") +
+  xlab("Year") + ylab("CO2 coal emission per person-year (tons)") +
+  geom_line(aes(linetype="solid", color=country)) +
+  geom_label(aes(label = country), data = topCountries_coal_co2_per_person %>% filter(year == max(year)),nudge_x = 0.35, size = 4) +
+  #  geom_point() +
+  guides(color=guide_legend(override.aes = list(size=3))) 
+
+# Step 6 : top 10 countries oil co2 emission per person-year
+topCountries_oil_co2_per_person <- topCountries_total %>%
+  filter(year >= 1900) %>%
+  mutate(oil_co2_per_person = oil_co2 / population * 1000000) %>%
+  select(country, year, oil_co2_per_person)
+ggplot(data = topCountries_oil_co2_per_person, aes(x=year, y=oil_co2_per_person, group=country)) +
+  ggtitle("Top 10 countries oil CO2 emission per person") +
+  xlab("Year") + ylab("CO2 oil emission per person-year (tons)") +
+  geom_line(aes(linetype="solid", color=country)) +
+  geom_label(aes(label = country), data = topCountries_oil_co2_per_person %>% filter(year == max(year)),nudge_x = 0.35, size = 4) +
+  #  geom_point() +
+  guides(color=guide_legend(override.aes = list(size=3))) 
+
+# Step 7 : top 10 countries volume of coal co2 emission contribution to GDP
+topCountries_coal_co2_contribution_to_gdp <- topCountries_total %>%
+  filter(year >= 1900) %>%
+  mutate(coal_co2_contribution_to_gdp = coal_co2 / co2 * co2_per_gdp) %>%
+  select(country, year, coal_co2_contribution_to_gdp)
+ggplot(data = topCountries_coal_co2_contribution_to_gdp, aes(x=year, y=coal_co2_contribution_to_gdp, group=country)) +
+  ggtitle("Top 10 countries coal CO2 contribution to per GDP") +
+  xlab("Year") + ylab("Coal CO2 contribution to per GDP (million tons)") +
+  geom_line(aes(linetype="solid", color=country, size=1)) +
+  geom_label(aes(label = country), data = topCountries_coal_co2_contribution_to_gdp %>% filter(year == max(year)),nudge_x = 0.35, size = 4) +
+  #  geom_point() +
+  guides(color=guide_legend(override.aes = list(size=3))) 
+
+# Step 8 : top 10 countries volume of oil co2 emission contribution to GDP
+topCountries_oil_co2_contribution_to_gdp <- topCountries_total %>%
+  filter(year >= 1900) %>%
+  mutate(oil_co2_contribution_to_gdp = oil_co2 / co2 * co2_per_gdp) %>%
+  select(country, year, oil_co2_contribution_to_gdp)
+ggplot(data = topCountries_oil_co2_contribution_to_gdp, aes(x=year, y=oil_co2_contribution_to_gdp, group=country)) +
+  ggtitle("Top 10 countries oil CO2 contribution to per GDP") +
+  xlab("Year") + ylab("Oil CO2 contribution to per GDP (million tons)") +
+  geom_line(aes(linetype="solid", color=country, size=1)) +
+  geom_label(aes(label = country), data = topCountries_oil_co2_contribution_to_gdp %>% filter(year == max(year)),nudge_x = 0.35, size = 4) +
+  #  geom_point() +
+  guides(color=guide_legend(override.aes = list(size=3))) 
+
+
+# Step 9 : world map of co2 distribution by country
+# options(stringsAsFactors = FALSE) 
+  
+all_countries_yearly_total <- co2data %>%
+  filter(country != "World" & country != "Europe" & country != "Asia" &
+           country != "North America" & country != "EU-28" & country != "EU-27" &
+           country != "Europe (excl. EU-27)" & country != "Europe (excl. EU-28)" &
+           country != "Asia (excl. China & India)" & 
+           country != "North America (excl. USA)" & country != "International transport") %>%
+  filter(year <= 1970) %>% 
+  group_by(country) %>%
+  summarize(total_co2 = sum(co2, na.rm=TRUE)) %>%
+  arrange(country) %>%
+  select(country, total_co2)
+
+world <- map_data("world") %>%
+  mutate(country = region)
+world$country[world$country == "UK"] <- "United Kingdom"
+
+world_all_countries_yearly_total_merged <- merge(countryCentroids_enhanced, all_countries_yearly_total, by="country")
+
+ggplot() +
+  geom_map(
+    data = world, map = world,
+    aes(long, lat, map_id = region),
+    color = "white", fill = "lightblue", size = 0.1
+  ) +
+  geom_point(
+    data = world_all_countries_yearly_total_merged,
+    aes(longitude, latitude, size=total_co2),
+    alpha = 5
+  ) +
+  scale_size(range=c(1, 15)) +
+  theme_void() +
+  labs(title="Total CO2 distribution by country")
 
 
 
-ggplot(data = state_latinx, aes(x=year, y=total_latinx_jail_pop, group=state)) +
-  geom_line(aes(linetype="solid", color=state, size=1)) +
-  geom_point() +
-  guides(color=guide_legend(override.aes = list(size=3))) +
-  theme(legend.position = "right")
 
 
 
