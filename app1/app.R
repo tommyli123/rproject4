@@ -130,79 +130,82 @@ ui <- fluidPage(
   
   tabsetPanel(
     tabPanel("Summary", fluid=TRUE,
-               mainPanel(
-                 fluidRow(
-                   column(12, htmlOutput("introduction"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesOverallCo2Section"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesOverallCo2Plot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesOilCo2Section"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesOilCo2Plot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesCoalCo2Section"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesCoalCo2Plot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesCo2PerPersonSection"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesCo2PerPersonPlot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesOilCo2PerPersonSection"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesOilCo2PerPersonPlot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesCoalCo2PerPersonSection"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesCoalCo2PerPersonPlot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesOilCo2ContributionToGdpSection"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesOilCo2ContributionToGdpPlot"))  
-                 ),
-                 fluidRow(
-                   column(12, htmlOutput("topCountriesCoalCo2ContributionToGdpSection"))  
-                 ),
-                 fluidRow(
-                   column(12, plotOutput("topCountriesCoalCo2ContributionToGdpPlot"))  
-                 )
+             mainPanel(
+               fluidRow(
+                 column(12, htmlOutput("introduction"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesOverallCo2Section"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesOverallCo2Plot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesOilCo2Section"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesOilCo2Plot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesCoalCo2Section"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesCoalCo2Plot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesCo2PerPersonSection"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesCo2PerPersonPlot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesOilCo2PerPersonSection"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesOilCo2PerPersonPlot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesCoalCo2PerPersonSection"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesCoalCo2PerPersonPlot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesOilCo2ContributionToGdpSection"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesOilCo2ContributionToGdpPlot"))  
+               ),
+               fluidRow(
+                 column(12, htmlOutput("topCountriesCoalCo2ContributionToGdpSection"))  
+               ),
+               fluidRow(
+                 column(12, plotOutput("topCountriesCoalCo2ContributionToGdpPlot"))  
                )
+             )
     ),
     tabPanel("global CO2 distribution", fluid=TRUE,
              sidebarLayout(
-                sidebarPanel(
-                  # textInput("year", "Year [1910-2020] :", value=2020, width=NULL, placeholder=NULL)           
-                  sliderInput("year", "Since 1900 to ", min=1900, max=2020, value=2020, step=10, sep=''),
-                  selectInput("type", "data type", 
-                              c("overall CO2" = "total_co2",
-                                "coal CO2" = "coal_co2",
-                                "oil CO2" = "oil_co2"
-                              )
-                  )
-                ),
-                mainPanel(
-                  fluidRow(
-                    column(12, plotOutput("worldMap"))  
-                  )
-                )           
-              )
-     )
+               sidebarPanel(
+                 # textInput("year", "Year [1910-2020] :", value=2020, width=NULL, placeholder=NULL)           
+                 sliderInput("year", "Since 1900 to ", min=1900, max=2020, value=2020, step=10, sep=''),
+                 selectInput("type", "data type", 
+                             c("overall CO2" = "total_co2",
+                               "coal CO2" = "coal_co2",
+                               "oil CO2" = "oil_co2"
+                             )
+                 )
+               ),
+               mainPanel(
+                 fluidRow(
+                   column(12, plotOutput("worldMap"))  
+                 ),
+                 fluidRow(
+                   column(12, htmlOutput("worldMapInsight"))  
+                 )
+               )           
+             )
+    )
   )  
 )
 # Server logic
@@ -235,7 +238,7 @@ server <- function(input, output) {
     )
   )
   output$topCountriesOilCo2Plot <- renderPlot(topCountries_total_oil_co2_plot)
-
+  
   output$topCountriesCoalCo2Section <- renderUI(
     tags$div(
       h3("Top countries with most coal CO2 emission"),
@@ -251,7 +254,7 @@ server <- function(input, output) {
     )
   )
   output$topCountriesCo2PerPersonPlot <- renderPlot(topCountries_co2_per_person_plot)
-
+  
   output$topCountriesOilCo2PerPersonSection <- renderUI(
     tags$div(
       h3("Top countries oil CO2 emission per persion"),
@@ -284,10 +287,10 @@ server <- function(input, output) {
   )
   output$topCountriesCoalCo2ContributionToGdpPlot <- renderPlot(topCountries_coal_co2_contribution_to_gdp_plot)
   
-    
-    
+  
+  
   output$worldMap <- renderPlot({
-
+    
     all_countries_yearly_total <- co2data %>%
       filter(country != "World" & country != "Europe" & country != "Asia" &
                country != "North America" & country != "EU-28" & country != "EU-27" &
@@ -328,10 +331,23 @@ server <- function(input, output) {
       ) +
       scale_size(range=c(1, 15)) +
       theme_void() +
-      labs(title=paste(title_data_type_to_use(), "emission from year 1900 to", input$year))
-    
-    
+      labs(title=paste(title_data_type_to_use(), "emission cumulation from year 1900 to", input$year))   
   })
+
+  output$worldMapInsight <- renderUI(
+    tags$div(
+      h3("Insights from the world map data"),
+      p("Apple pie apple pie dragée candy canes toffee. Apple pie sweet roll powder. 
+        Sesame snaps cake cake icing gummies tootsie roll. Jelly bonbon ice cream apple pie. 
+        Dessert cupcake oat cake. Candy canes sweet cheesecake sesame snaps macaroon tootsie 
+        roll danish candy canes. Liquorice ice cream tart jelly beans wafer gummies cake 
+        bear claw. Halvah biscuit cake pudding dragée dessert lemon drops cake. 
+        Apple pie halvah croissant brownie chocolate bar brownie donut pie. Bonbon bear claw 
+        biscuit apple pie tiramisu. Sweet roll pastry pie cheesecake halvah candy cake pudding. 
+        Soufflé tart toffee jelly-o muffin brownie danish cupcake. Candy canes bear claw 
+        bonbon liquorice tiramisu halvah halvah jelly beans tootsie roll.")
+    )
+  )
   
 }
 shinyApp(ui = ui, server = server)
