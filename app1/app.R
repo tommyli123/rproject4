@@ -4,18 +4,12 @@ library(tidyr)
 library(maps)
 library(stringr)
 library(tidyverse)
+library(plotly)
 library(shiny)
 
 co2data <- read.csv("owid-co2-data.csv")
 codebook <- read.csv("owid-co2-codebook.csv")
-# google centroid data source : https://raw.githubusercontent.com/google/dspl/master/samples/google/canonical/countries.csv
-countryCentroids <- read.csv("google-country-centroids.csv")
-countryCentroids_enhanced <- countryCentroids %>%
-  mutate(country = name)
-
-world <- map_data("world") %>%
-  mutate(country = region)
-world$country[world$country == "UK"] <- "United Kingdom"
+countries <- read.csv('country_codes.csv')
 
 # step 1 : find top 10 countries that have the most co2 through all the years
 top_country_yearly_total <- co2data %>%
@@ -198,7 +192,7 @@ ui <- fluidPage(
                ),
                mainPanel(
                  fluidRow(
-                   column(12, plotOutput("worldMap"))  
+                   column(12, plotlyOutput("worldMap"))  
                  ),
                  fluidRow(
                    column(12, htmlOutput("worldMapInsight"))  
@@ -289,7 +283,7 @@ server <- function(input, output) {
   
   
   
-  output$worldMap <- renderPlot({
+  output$worldMap <- renderPlotly({
     
     all_countries_yearly_total <- co2data %>%
       filter(country != "World" & country != "Europe" & country != "Asia" &
@@ -305,7 +299,7 @@ server <- function(input, output) {
       arrange(country) %>%
       select(country, total_co2, total_oil_co2, total_coal_co2)    
     
-    world_all_countries_yearly_total_merged <- merge(countryCentroids_enhanced, all_countries_yearly_total, by="country")
+    world_all_countries_yearly_total_merged <- merge(countries, all_countries_yearly_total, by="country")
     
     millionTonnes <- reactive({
       if ("total_co2" == input$type) return(world_all_countries_yearly_total_merged$total_co2)
@@ -318,20 +312,15 @@ server <- function(input, output) {
       if ("oil_co2" == input$type) return("Global oil CO2")
     })
     
-    ggplot() +
-      geom_map(
-        data = world, map = world,
-        aes(long, lat, map_id = region), 
-        color = "white", fill = "lightblue", size = 0.1
-      ) +
-      geom_point(
-        data = world_all_countries_yearly_total_merged,
-        aes(longitude, latitude, size=millionTonnes()),
-        alpha = 5
-      ) +
-      scale_size(range=c(1, 15)) +
-      theme_void() +
-      labs(title=paste(title_data_type_to_use(), "emission cumulation from year 1900 to", input$year))   
+    plot_ly(world_all_countries_yearly_total_merged, 
+            type='choropleth',
+            locations=world_all_countries_yearly_total_merged$code, 
+            z=millionTonnes(),
+            text=world_all_countries_yearly_total_merged$country,
+            reversescale=TRUE,
+            colorscale="Blues") %>%
+      layout(title=paste(title_data_type_to_use(), "emission cumulation from year 1900 to", input$year, "(millionTonnes)"))
+  
   })
 
   output$worldMapInsight <- renderUI(
